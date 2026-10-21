@@ -5,20 +5,14 @@
 
 class AVLTree
 {
-public:
+private:
     AVLNode *root;
     int rotationCount = 0;
 
-    AVLTree() : root(nullptr) {}
-
-    // retorna true se a chave especificada estiver presente na árvore ou false caso contrário
-    bool search(int key)
-    {
-        return searchHelper(root, key);
-    };
+    // operações principais da árvore AVL: inserção, remoção, rotação e balanceamento privados
 
     // retorna o nó com a chave especificada (de forma recursiva) ou nullptr se não encontrado
-    bool searchHelper(AVLNode *node, int key)
+    bool search(AVLNode *node, int key)
     {
         if (node == nullptr)
         {
@@ -32,22 +26,16 @@ public:
 
         if (key < node->key)
         {
-            return searchHelper(node->left, key);
+            return search(node->left, key);
         }
         else
         {
-            return searchHelper(node->right, key);
+            return search(node->right, key);
         }
     };
 
-    // metodo para inserir uma nova chave na árvore
-    void insert(int key)
-    {
-        root = insertHelper(root, key);
-    };
-
     // metodo auxiliar para inserir um nó na árvore (de forma recursiva)
-    AVLNode *insertHelper(AVLNode *node, int key)
+    AVLNode *insert(AVLNode *node, int key)
     {
         // Se o nó atual for nulo cria um novo nó com a chave especificada
         if (node == nullptr)
@@ -58,11 +46,11 @@ public:
         // se a chave for menor que a chave do nó atual insere na subárvore esquerda, se não insere na subárvore direita
         if (key < node->key)
         {
-            node->left = insertHelper(node->left, key);
+            node->left = insert(node->left, key);
         }
         else if (key > node->key)
         {
-            node->right = insertHelper(node->right, key);
+            node->right = insert(node->right, key);
         }
         else
         {
@@ -92,6 +80,81 @@ public:
             return rotateLeft(node);
         }
 
+        return node; // Retorna o nó atual se não tiver alteração
+    };
+
+    // remove um nó com a chave especificada da árvore (de forma recursiva)
+    AVLNode *remove(AVLNode *node, int key)
+    {
+        if (node == nullptr)
+        {
+            return node; // Nó não encontrado
+        }
+
+        if (key < node->key)
+        {
+            node->left = remove(node->left, key); // Procura na subárvore esquerda
+        }
+        else if (key > node->key)
+        {
+            node->right = remove(node->right, key); // Procura na subárvore direita
+        }
+        else
+        {
+            // Nó encontrado, realiza a remoção
+            if (node->left == nullptr || node->right == nullptr)
+            {
+                AVLNode *temp = node->left ? node->left : node->right;
+
+                if (temp == nullptr)
+                {
+                    temp = node;
+                    node = nullptr; // Nó sem filhos
+                }
+                else
+                {
+                    *node = *temp; // Nó com um filho
+                }
+
+                delete temp;
+            }
+            else
+            {
+                AVLNode *temp = getMinValueNode(node->right); // Nó com dois filhos
+
+                node->key = temp->key; // Substitui a chave pelo menor valor da subárvore direita
+
+                node->right = remove(node->right, temp->key); // Remove o nó substituído
+            }
+        }
+
+        if (node == nullptr)
+        {
+            return node; // Retorna se o nó for nulo após a remoção
+        }
+
+        updateHeight(node); // Atualiza a altura do nó atual
+
+        int balanceFactor = getBalanceFactor(node); // Calcula o fator de balanceamento do nó atual
+
+        if (balanceFactor > 1 && getBalanceFactor(node->left) >= 0) // Caso Left Left
+        {
+            return rotateRight(node);
+        }
+        if (balanceFactor < -1 && getBalanceFactor(node->right) <= 0) // Caso Right Right
+        {
+            return rotateLeft(node);
+        }
+        if (balanceFactor > 1 && getBalanceFactor(node->left) < 0) // Caso Left Right
+        {
+            node->left = rotateLeft(node->left);
+            return rotateRight(node);
+        }
+        if (balanceFactor < -1 && getBalanceFactor(node->right) > 0) // Caso Right Left
+        {
+            node->right = rotateRight(node);
+            return rotateLeft(node);
+        }
         return node; // Retorna o nó atual se não tiver alteração
     };
 
@@ -129,85 +192,55 @@ public:
         return newRoot;
     };
 
+    // retorna o fator de balanceamento do nó, ou 0 se o nó for nulo
+    int getBalanceFactor(AVLNode *node)
+    {
+        if (node == nullptr)
+        {
+            return 0;
+        }
+        return getNodeHeight(node->left) - getNodeHeight(node->right);
+    };
+
+
+    // Metodos auxiliares 
+    
+    // pega o menor nó da subárvore especificada (usado para encontrar o sucessor in-order)
+    AVLNode *getMinValueNode(AVLNode *node)
+    {
+        AVLNode *current = node;
+        while (current->left != nullptr)
+        {
+            current = current->left;
+        }
+        return current;
+    }
+
+    // atualiza a altura do nó especificado com base nas alturas de seus filhos
+    void updateHeight(AVLNode *node)
+    {
+        node->height = 1 + max(getNodeHeight(node->left), getNodeHeight(node->right));
+    }
+
+public:
+    AVLTree() : root(nullptr) {}
+
+    // retorna true se a chave especificada estiver presente na árvore ou false caso contrário
+    bool search(int key)
+    {
+        return search(root, key);
+    };
+
+    // metodo para inserir uma nova chave na árvore
+    void insert(int key)
+    {
+        root = insert(root, key);
+    };
+
     // remove um nó com a chave especificada da árvore
     void remove(int key)
     {
-        root = removeHelper(root, key);
-    };
-
-    // remove um nó com a chave especificada da árvore (de forma recursiva)
-    AVLNode *removeHelper(AVLNode *node, int key)
-    {
-        if (node == nullptr)
-        {
-            return node; // Nó não encontrado
-        }
-
-        if (key < node->key)
-        {
-            node->left = removeHelper(node->left, key); // Procura na subárvore esquerda
-        }
-        else if (key > node->key)
-        {
-            node->right = removeHelper(node->right, key); // Procura na subárvore direita
-        }
-        else
-        {
-            // Nó encontrado, realiza a remoção
-            if (node->left == nullptr || node->right == nullptr)
-            {
-                AVLNode *temp = node->left ? node->left : node->right;
-
-                if (temp == nullptr)
-                {
-                    temp = node;
-                    node = nullptr; // Nó sem filhos
-                }
-                else
-                {
-                    *node = *temp; // Nó com um filho
-                }
-
-                delete temp;
-            }
-            else
-            {
-                AVLNode *temp = getMinValueNode(node->right); // Nó com dois filhos
-
-                node->key = temp->key; // Substitui a chave pelo menor valor da subárvore direita
-
-                node->right = removeHelper(node->right, temp->key); // Remove o nó substituído
-            }
-        }
-
-        if (node == nullptr)
-        {
-            return node; // Retorna se o nó for nulo após a remoção
-        }
-
-        updateHeight(node); // Atualiza a altura do nó atual
-
-        int balanceFactor = getBalanceFactor(node); // Calcula o fator de balanceamento do nó atual
-
-        if (balanceFactor > 1 && getBalanceFactor(node->left) >= 0) // Caso Left Left
-        {
-            return rotateRight(node);
-        }
-        if (balanceFactor < -1 && getBalanceFactor(node->right) <= 0) // Caso Right Right
-        {
-            return rotateLeft(node);
-        }
-        if (balanceFactor > 1 && getBalanceFactor(node->left) < 0) // Caso Left Right
-        {
-            node->left = rotateLeft(node->left);
-            return rotateRight(node);
-        }
-        if (balanceFactor < -1 && getBalanceFactor(node->right) > 0) // Caso Right Left
-        {
-            node->right = rotateRight(node);
-            return rotateLeft(node);
-        }
-        return node; // Retorna o nó atual se não tiver alteração
+        root = remove(root, key);
     };
 
     // retorna a altura do nó especificado, ou 0 se o nó for nulo
@@ -226,39 +259,17 @@ public:
 
     void inOrder();
     void printTree();
-    void getRotationCount();
 
-    // retorna o fator de balanceamento do nó, ou 0 se o nó for nulo
-    int getBalanceFactor(AVLNode *node)
+    // retorna o número de rotações realizadas durante as operações de inserção e remoção
+    int getRotationCount()
     {
-        if (node == nullptr)
-        {
-            return 0;
-        }
-        return getNodeHeight(node->left) - getNodeHeight(node->right);
+        return rotationCount;
     };
 
     // retorna o maior valor entre dois inteiros
     int max(int a, int b)
     {
         return (a > b) ? a : b;
-    }
-
-    // atualiza a altura do nó especificado com base nas alturas de seus filhos
-    void updateHeight(AVLNode *node)
-    {
-        node->height = 1 + max(getNodeHeight(node->left), getNodeHeight(node->right));
-    }
-
-    // pega o menor nó da subárvore especificada (usado para encontrar o sucessor in-order)
-    AVLNode *getMinValueNode(AVLNode *node)
-    {
-        AVLNode *current = node;
-        while (current->left != nullptr)
-        {
-            current = current->left;
-        }
-        return current;
     }
 };
 
