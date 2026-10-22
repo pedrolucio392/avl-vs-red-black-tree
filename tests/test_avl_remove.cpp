@@ -16,8 +16,8 @@ void testRemoveLeaf()
     assert(tree.search(10) == false);
     assert(tree.search(20) == true);
     assert(tree.search(30) == true);
-    assert(tree.root->key == 20);
-    assert(tree.root->left == nullptr);
+    assert(tree.getRoot()->key == 20);
+    assert(tree.getRoot()->left == nullptr);
     assert(tree.getTreeHeight() == 2);
     std::cout << "-> Remocao de folha aprovada!\n"
               << std::endl;
@@ -38,8 +38,8 @@ void testRemoveNodeWithOneChild()
 
     assert(tree.search(10) == false);
     assert(tree.search(5) == true);
-    assert(tree.root->left != nullptr);
-    assert(tree.root->left->key == 5); // 5 subiu para o lugar do 10
+    assert(tree.getRoot()->left != nullptr);
+    assert(tree.getRoot()->left->key == 5); // 5 subiu para o lugar do 10
     std::cout << "-> Remocao de no com 1 filho aprovada!\n"
               << std::endl;
 }
@@ -58,9 +58,9 @@ void testRemoveNodeWithTwoChildren()
     tree.remove(20);
 
     assert(tree.search(20) == false);
-    assert(tree.root->key == 25); // 25 virou a nova raiz
-    assert(tree.root->left->key == 10);
-    assert(tree.root->right->key == 30);
+    assert(tree.getRoot()->key == 25); // 25 virou a nova raiz
+    assert(tree.getRoot()->left->key == 10);
+    assert(tree.getRoot()->right->key == 30);
     assert(tree.search(25) == true);
     assert(tree.search(30) == true);
     assert(tree.search(40) == true);
@@ -78,18 +78,18 @@ void testRemoveCausingRebalance()
     tree.insert(40);
     tree.insert(10);
 
-    int rotacoesAntes = tree.rotationCount;
+    int rotacoesAntes = tree.getRotationCount();
 
     // Remover 40 torna a subarvore direita nula.
     // O no 30 fica com FB = 2 e filho esquerdo (20) com FB >= 0 -> Dispara rotateRight(30)
     tree.remove(40);
 
     assert(tree.search(40) == false);
-    assert(tree.root->key == 20); // 20 assumiu o topo
-    assert(tree.root->left->key == 10);
-    assert(tree.root->right->key == 30);
+    assert(tree.getRoot()->key == 20); // 20 assumiu o topo
+    assert(tree.getRoot()->left->key == 10);
+    assert(tree.getRoot()->right->key == 30);
     assert(tree.getTreeHeight() == 2);
-    assert(tree.rotationCount > rotacoesAntes); // Garante que rebalanceou
+    assert(tree.getRotationCount() > rotacoesAntes); // Garante que rebalanceou
     std::cout << "-> Rebalanceamento por remocao aprovado!\n"
               << std::endl;
 }
@@ -102,16 +102,16 @@ void testRemoveNonExistentAndEmpty()
 
     // Chave que nao existe em arvore com elementos
     tree.remove(999);
-    assert(tree.root != nullptr && tree.root->key == 50);
+    assert(tree.getRoot() != nullptr && tree.getRoot()->key == 50);
 
     // Remove o unico elemento
     tree.remove(50);
-    assert(tree.root == nullptr);
+    assert(tree.getRoot() == nullptr);
     assert(tree.getTreeHeight() == 0);
 
     // Remover em arvore ja vazia
     tree.remove(50);
-    assert(tree.root == nullptr);
+    assert(tree.getRoot() == nullptr);
     std::cout << "-> Casos de borda aprovados!\n"
               << std::endl;
 }
