@@ -14,7 +14,6 @@ private:
     // Métodos auxiliares
     bool isRed(RBNode *node) const;
     void flipColors(RBNode *node);
-    void invertColor(RBNode *node);
     RBNode *moveRedLeft(RBNode *node);
     RBNode *moveRedRight(RBNode *node);
     RBNode *getMinimum(RBNode *node) const;
