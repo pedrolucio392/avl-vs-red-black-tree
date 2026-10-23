@@ -21,3 +21,7 @@ test_avl: tests/test_avl.cpp src/AVLTree.cpp
 test_avl_remove: tests/test_avl_remove.cpp src/AVLTree.cpp
 	$(CXX) $(CXXFLAGS) tests/test_avl_remove.cpp src/AVLTree.cpp -o test_avl_remove.exe
 	output/test_avl_remove.exe
+
+test_rb: tests/test_rb.cpp src/RBTree.cpp
+	$(CXX) $(CXXFLAGS) tests/test_rb.cpp src/RBTree.cpp -o output/test_rb.exe
+	output/test_rb.exe
