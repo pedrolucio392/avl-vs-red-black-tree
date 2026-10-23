@@ -8,9 +8,6 @@
 
 void testLeftLeft()
 {
-    #ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8);
-    #endif
     std::cout << "Testando Caso LL" << std::endl;
     AVLTree tree;
     // 30, 20, 10
@@ -102,6 +99,10 @@ void testDuplicates()
 
 int main()
 {
+    #ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    #endif
+    
     testLeftLeft();
     // testRightRight();
     // testLeftRight();
