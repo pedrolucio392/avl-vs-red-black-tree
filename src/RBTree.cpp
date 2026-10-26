@@ -4,8 +4,8 @@
 #include <string>
 #include <algorithm>
 
-#define ANSI_RED "\033[31;1m"
-#define ANSI_RESET "\033[0m"
+const std::string ANSI_RED = "\033[31m";
+const std::string ANSI_RESET = "\033[0m";
 
 RBTree::RBTree() : root(nullptr), rotationCount(0) {}
 
@@ -82,6 +82,9 @@ RBNode *RBTree::insert(RBNode *node, int key)
 // lógica principal recursiva para remoção na rb
 RBNode *RBTree::remove(RBNode *node, int key)
 {
+    if (node == nullptr)
+        return nullptr;
+
     if (key < node->key)
     {
         if (!isRed(node->left) && !isRed(node->left->left))
@@ -159,8 +162,10 @@ RBNode *RBTree::rotateRight(RBNode *node)
 // retorna se é vermelho ou não
 bool RBTree::isRed(RBNode *node) const
 {
-    return node != nullptr && node->color == RED;
-};
+    if (node == nullptr)
+        return false;
+    return node->color == RED;
+}
 
 // realiza a troca das cores dos nós
 void RBTree::flipColors(RBNode *node)
@@ -173,6 +178,9 @@ void RBTree::flipColors(RBNode *node)
 // metodo para balancear a RB tree nos diferentes casos (ambos filhos vermelhos, etc)
 RBNode *RBTree::balance(RBNode *node)
 {
+    if (node == nullptr)
+        return nullptr;
+
     if (isRed(node->right) && !isRed(node->left))
     {
         node = rotateLeft(node);
@@ -192,7 +200,7 @@ RBNode *RBTree::balance(RBNode *node)
 RBNode *RBTree::moveRedLeft(RBNode *node)
 {
     flipColors(node);
-    if (isRed(node->right->left))
+    if (node->right != nullptr && isRed(node->right->left))
     {
         node->right = rotateRight(node->right);
         node = rotateLeft(node);
@@ -206,7 +214,7 @@ RBNode *RBTree::moveRedRight(RBNode *node)
 {
     flipColors(node);
     // Se o irmão esquerdo tem um filho esquerdo vermelho, empresta dele
-    if (isRed(node->left->left))
+    if (node->right != nullptr && isRed(node->left->left))
     {
         node = rotateRight(node);
         flipColors(node);
@@ -349,4 +357,20 @@ void RBTree::remove(int key)
 int RBTree::height() const
 {
     return height(root);
+}
+
+void RBTree::printInOrder() const
+{
+    printInOrder(root);
+    std::cout << "\n";
+}
+
+void RBTree::printInOrder(RBNode *node) const
+{
+    if (node != nullptr)
+    {
+        printInOrder(node->left);
+        std::cout << node->key << " ";
+        printInOrder(node->right);
+    }
 }

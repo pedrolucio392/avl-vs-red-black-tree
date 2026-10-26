@@ -2,51 +2,136 @@
 #include <iostream>
 #include <string>
 
+// Inicializa a arvore AVL vazia
 AVLTree::AVLTree() : root(nullptr), rotationCount(0) {}
+
+// Destrutor padrao que limpa todos os nos
 AVLTree::~AVLTree()
 {
-    destroyTree(root);
+    clear();
+}
+
+// Remove todos os elementos da arvore
+void AVLTree::clear()
+{
+    destroyAVL(root);
     root = nullptr;
 }
 
-// METODOS PRIVADOS
+// Auxiliar recursivo para desalocar nos da memoria
+void AVLTree::destroyAVL(AVLNode *node)
+{
+    if (node != nullptr)
+    {
+        destroyAVL(node->left);
+        destroyAVL(node->right);
+        delete node;
+    }
+}
 
+// Retorna a altura total da arvore
+int AVLTree::height() const
+{
+    return height(root);
+}
 
-// METODOS PRINCIPAIS PRIVADOS
+// Retorna a altura de um no especifico de forma segura
+int AVLTree::height(AVLNode *node) const
+{
+    return node == nullptr ? 0 : node->height;
+}
 
-// retorna o nó com a chave especificada (de forma recursiva) ou nullptr se não encontrado
+// Calcula o fator de balanceamento de um no
+int AVLTree::getBalance(AVLNode *node) const
+{
+    return node == nullptr ? 0 : height(node->left) - height(node->right);
+}
+
+// Atualiza a altura do no com base nos seus filhos
+void AVLTree::updateHeight(AVLNode *node)
+{
+    if (node != nullptr)
+    {
+        node->height = 1 + std::max(height(node->left), height(node->right));
+    }
+}
+
+// Retorna o contador total de rotacoes realizadas
+int AVLTree::getRotationCount() const
+{
+    return rotationCount;
+}
+
+// Zera o contador de rotacoes
+void AVLTree::resetRotationCount()
+{
+    rotationCount = 0;
+}
+
+// Busca publica por uma chave na arvore
+bool AVLTree::search(int key) const
+{
+    return search(root, key);
+}
+
+// Busca recursiva por uma chave
 bool AVLTree::search(AVLNode *node, int key) const
 {
     if (node == nullptr)
-    {
         return false;
-    }
-
-    if (node->key == key)
-    {
-        return true;
-    }
-
     if (key < node->key)
-    {
         return search(node->left, key);
-    }
-    else
-    {
+    if (key > node->key)
         return search(node->right, key);
-    }
-};
+    return true;
+}
 
-// metodo auxiliar para inserir um nó na árvore (de forma recursiva)
+// Realiza a rotacao simples a direita
+AVLNode *AVLTree::rotateRight(AVLNode *node)
+{
+    if (node == nullptr || node->left == nullptr)
+        return node;
+    AVLNode *leftChild = node->left;
+    AVLNode *rightOfLeft = leftChild->right;
+
+    leftChild->right = node;
+    node->left = rightOfLeft;
+
+    updateHeight(node);
+    updateHeight(leftChild);
+    rotationCount++;
+    return leftChild;
+}
+
+// Realiza a rotacao simples a esquerda
+AVLNode *AVLTree::rotateLeft(AVLNode *node)
+{
+    if (node == nullptr || node->right == nullptr)
+        return node;
+    AVLNode *rightChild = node->right;
+    AVLNode *leftOfRight = rightChild->left;
+
+    rightChild->left = node;
+    node->right = leftOfRight;
+
+    updateHeight(node);
+    updateHeight(rightChild);
+    rotationCount++;
+    return rightChild;
+}
+
+// Insere uma nova chave na arvore
+void AVLTree::insert(int key)
+{
+    root = insert(root, key);
+}
+
+// Auxiliar recursivo para inserir uma chave e balancear a arvore
 AVLNode *AVLTree::insert(AVLNode *node, int key)
 {
-    // Se o nó atual for nulo cria um novo nó com a chave especificada
     if (node == nullptr)
-    {
         return new AVLNode(key);
-    }
 
-    // se a chave for menor que a chave do nó atual insere na subárvore esquerda, se não insere na subárvore direita
     if (key < node->key)
     {
         node->left = insert(node->left, key);
@@ -57,288 +142,149 @@ AVLNode *AVLTree::insert(AVLNode *node, int key)
     }
     else
     {
-        return node; // Chave duplicada não isertir
+        return node;
     }
 
-    updateHeight(node); // Atualiza a altura do nó atual
+    updateHeight(node);
+    int balance = getBalance(node);
 
-    int balanceFactor = getBalanceFactor(node); // Calcula o fator de balanceamento do nó atual
-
-    if (balanceFactor > 1 && key < node->left->key) // Caso Left Left
-    {
+    if (balance > 1 && key < node->left->key)
         return rotateRight(node);
-    }
-    if (balanceFactor < -1 && key > node->right->key) // Caso Right Right
-    {
+    if (balance < -1 && key > node->right->key)
         return rotateLeft(node);
-    }
-    if (balanceFactor > 1 && key > node->left->key) // Caso Left Right
+    if (balance > 1 && key > node->left->key)
     {
         node->left = rotateLeft(node->left);
         return rotateRight(node);
     }
-    if (balanceFactor < -1 && key < node->right->key) // Caso Right Left
+    if (balance < -1 && key < node->right->key)
     {
         node->right = rotateRight(node->right);
         return rotateLeft(node);
     }
 
-    return node; // Retorna o nó atual se não tiver alteração
-};
+    return node;
+}
 
-// remove um nó com a chave especificada da árvore (de forma recursiva)
-AVLNode *AVLTree::remove(AVLNode *node, int key)
+// Remove uma chave da arvore
+void AVLTree::remove(int key)
 {
-    if (node == nullptr)
-    {
-        return node; // Nó não encontrado
-    }
+    root = remove(root, key);
+}
 
-    if (key < node->key)
-    {
-        node->left = remove(node->left, key); // Procura na subárvore esquerda
-    }
-    else if (key > node->key)
-    {
-        node->right = remove(node->right, key); // Procura na subárvore direita
-    }
-    else
-    {
-        // Nó encontrado, realiza a remoção
-        if (node->left == nullptr || node->right == nullptr)
-        {
-            AVLNode *temp = node->left ? node->left : node->right;
-
-            if (temp == nullptr)
-            {
-                temp = node;
-                node = nullptr; // Nó sem filhos
-            }
-            else
-            {
-                *node = *temp; // Nó com um filho
-            }
-
-            delete temp;
-        }
-        else
-        {
-            AVLNode *temp = getMinValueNode(node->right); // Nó com dois filhos
-
-            node->key = temp->key; // Substitui a chave pelo menor valor da subárvore direita
-
-            node->right = remove(node->right, temp->key); // Remove o nó substituído
-        }
-    }
-
-    if (node == nullptr)
-    {
-        return node; // Retorna se o nó for nulo após a remoção
-    }
-
-    updateHeight(node); // Atualiza a altura do nó atual
-
-    int balanceFactor = getBalanceFactor(node); // Calcula o fator de balanceamento do nó atual
-
-    if (balanceFactor > 1 && getBalanceFactor(node->left) >= 0) // Caso Left Left
-    {
-        return rotateRight(node);
-    }
-    if (balanceFactor < -1 && getBalanceFactor(node->right) <= 0) // Caso Right Right
-    {
-        return rotateLeft(node);
-    }
-    if (balanceFactor > 1 && getBalanceFactor(node->left) < 0) // Caso Left Right
-    {
-        node->left = rotateLeft(node->left);
-        return rotateRight(node);
-    }
-    if (balanceFactor < -1 && getBalanceFactor(node->right) > 0) // Caso Right Left
-    {
-        node->right = rotateRight(node);
-        return rotateLeft(node);
-    }
-    return node; // Retorna o nó atual se não tiver alteração
-};
-
-// metodo para realizar a rotação à esquerda em um nó específico
-AVLNode *AVLTree::rotateLeft(AVLNode *node)
-{
-    AVLNode *newRoot = node->right;       // Armazena o novo nó raiz (subárvore direita)
-    AVLNode *subTreeLeft = newRoot->left; // Armazena a subárvore esquerda do novo nó raiz
-
-    newRoot->left = node;      // Faz o nó atual se tornar a subárvore esquerda do novo nó raiz
-    node->right = subTreeLeft; // Faz a subárvore esquerda do novo nó raiz se tornar a subárvore direita do nó atual
-
-    updateHeight(node);    // Atualiza a altura do nó atual
-    updateHeight(newRoot); // Atualiza a altura do novo nó raiz
-
-    rotationCount++; // Incrementa o contador de rotações
-
-    return newRoot;
-};
-
-// metodo para realizar a rotação à direita em um nó específico
-AVLNode *AVLTree::rotateRight(AVLNode *node)
-{
-    AVLNode *newRoot = node->left;          // Armazena o novo nó raiz (subárvore esquerda)
-    AVLNode *subTreeRight = newRoot->right; // Armazena a subárvore direita do novo nó raiz
-
-    newRoot->right = node;     // Faz o nó atual se tornar a subárvore direita do novo nó raiz
-    node->left = subTreeRight; // Faz a subárvore direita do novo nó raiz se tornar a subárvore esquerda do nó atual
-
-    updateHeight(node);    // Atualiza a altura do nó atual
-    updateHeight(newRoot); // Atualiza a altura do novo nó raiz
-
-    rotationCount++; // Incrementa o contador de rotações
-
-    return newRoot;
-};
-
-// retorna o fator de balanceamento do nó, ou 0 se o nó for nulo
-int AVLTree::getBalanceFactor(AVLNode *node) const
-{
-    if (node == nullptr)
-    {
-        return 0;
-    }
-    return getNodeHeight(node->left) - getNodeHeight(node->right);
-};
-
-
-// METODOS AUXILIARES PRIVADOS
-
-// pega o menor nó da subárvore especificada (usado para encontrar o sucessor in-order)
-AVLNode *AVLTree::getMinValueNode(AVLNode *node)
+// Encontra o no com o menor valor (mais a esquerda)
+AVLNode *AVLTree::getMin(AVLNode *node) const
 {
     AVLNode *current = node;
-    while (current->left != nullptr)
+    while (current && current->left != nullptr)
     {
         current = current->left;
     }
     return current;
-};
+}
 
-// atualiza a altura do nó especificado com base nas alturas de seus filhos
-void AVLTree::updateHeight(AVLNode *node)
+// Auxiliar recursivo para remover uma chave e rebalancear a arvore
+AVLNode *AVLTree::remove(AVLNode *node, int key)
 {
-    node->height = 1 + max(getNodeHeight(node->left), getNodeHeight(node->right));
-};
+    if (node == nullptr)
+        return nullptr;
 
-// auxiliar para imprimir a árvore em ordem (esquerda, raiz, direita)
-void AVLTree::inOrder(AVLNode *node) const
+    if (key < node->key)
+    {
+        node->left = remove(node->left, key);
+    }
+    else if (key > node->key)
+    {
+        node->right = remove(node->right, key);
+    }
+    else
+    {
+        if (node->left == nullptr)
+        {
+            AVLNode *temp = node->right;
+            delete node;
+            return temp;
+        }
+        else if (node->right == nullptr)
+        {
+            AVLNode *temp = node->left;
+            delete node;
+            return temp;
+        }
+
+        AVLNode *temp = getMin(node->right);
+        node->key = temp->key;
+        node->right = remove(node->right, temp->key);
+    }
+
+    if (node == nullptr)
+        return nullptr;
+
+    updateHeight(node);
+    int balance = getBalance(node);
+
+    if (balance > 1 && getBalance(node->left) >= 0)
+        return rotateRight(node);
+    if (balance > 1 && getBalance(node->left) < 0)
+    {
+        node->left = rotateLeft(node->left);
+        return rotateRight(node);
+    }
+    if (balance < -1 && getBalance(node->right) <= 0)
+        return rotateLeft(node);
+    if (balance < -1 && getBalance(node->right) > 0)
+    {
+        node->right = rotateRight(node->right);
+        return rotateLeft(node);
+    }
+
+    return node;
+}
+
+// Percurso em ordem (crescente)
+void AVLTree::printInOrder() const
+{
+    printInOrder(root);
+    std::cout << "\n";
+}
+
+void AVLTree::printInOrder(AVLNode *node) const
 {
     if (node != nullptr)
     {
-        inOrder(node->left);
+        printInOrder(node->left);
         std::cout << node->key << " ";
-        inOrder(node->right);
+        printInOrder(node->right);
     }
-};
+}
 
-// auxiliar para imprimir a árvore de forma estruturada (raiz, filhos)
-void AVLTree::printTree(AVLNode *node, const std::string &prefix, bool isTail) const
-{
-    if (node != nullptr)
-    {
-        std::cout << prefix;
-
-        std::cout << (isTail ? "└──" : "├──");
-
-        std::cout << node->key << std::endl;
-
-        printTree(node->left, prefix + (isTail ? "│   " : "    "), true);
-        printTree(node->right, prefix + (isTail ? "│   " : "    "), false);
-    }
-};
-
-void AVLTree::destroyTree(AVLNode *node)
-{
-    if (node == nullptr)
-    {
-        return;
-    }
-
-    destroyTree(node->left);
-    destroyTree(node->right);
-
-    delete node;
-};
-
-
-
-// METODOS PUBLICOS
-
-
-// METODOS PRINCIPAIS PUBLICOS
-
-// retorna true se a chave especificada estiver presente na árvore ou false caso contrário
-bool AVLTree::search(int key) const
-{
-    return search(root, key);
-};
-
-// metodo para inserir uma nova chave na árvore
-void AVLTree::insert(int key)
-{
-    root = insert(root, key);
-};
-
-// remove um nó com a chave especificada da árvore
-void AVLTree::remove(int key)
-{
-    root = remove(root, key);
-};
-
-
-// METODOS AUXILIARES PUBLICOS
-
-// retorna a altura do nó especificado, ou 0 se o nó for nulo
-int AVLTree::getNodeHeight(AVLNode *node) const
-{
-    if (node == nullptr)
-        return 0;
-    return node->height;
-};
-
-// retorna a altura da árvore inteira que é a altura do root
-int AVLTree::getTreeHeight() const
-{
-    return getNodeHeight(root);
-};
-
-// imprime a árvore em ordem (esquerda, raiz, direita)
-void AVLTree::inOrder() const
-{
-    inOrder(root);
-    std::cout << std::endl;
-};
-
-// imprime a árvore de forma estruturada (raiz, filhos)
 void AVLTree::printTree() const
 {
     if (root == nullptr)
     {
-        std::cout << "(arvore vazia)" << std::endl;
+        std::cout << "(arvore vazia)\n";
         return;
     }
-    printTree(root, "", true);
-};
+    printTree(root, "", false);
+}
 
-// retorna o número de rotações realizadas durante as operações de inserção e remoção
-int AVLTree::getRotationCount() const
+void AVLTree::printTree(AVLNode *node, const std::string &prefix, bool isLeft) const
 {
-    return rotationCount;
-};
+    if (node == nullptr)
+    {
+        return;
+    }
 
-// retorna o maior valor entre dois inteiros
-int AVLTree::max(int a, int b)
-{
-    return (a > b) ? a : b;
-};
+    // Visita a subárvore direita primeiro (topo do terminal)
+    printTree(node->right, prefix + (isLeft ? "│   " : "    "), false);
 
-// retorna o nó raiz da árvore
-AVLNode *AVLTree::getRoot() const
-{
-    return root;
-};
+    // Conector visual
+    std::cout << prefix;
+    std::cout << (isLeft ? "└── " : "┌── ");
+
+    // Chave com o Fator de Balanceamento
+    std::cout << node->key << " (FB: " << getBalance(node) << ")\n";
+
+    // Visita a subárvore esquerda (baixo do terminal)
+    printTree(node->left, prefix + (isLeft ? "    " : "│   "), true);
+}
