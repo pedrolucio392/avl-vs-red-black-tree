@@ -17,7 +17,9 @@ private:
     RBNode *moveRedLeft(RBNode *node);
     RBNode *moveRedRight(RBNode *node);
     RBNode *getMinimum(RBNode *node) const;
+    RBNode *removeMin(RBNode *node);
     RBNode *balance(RBNode *node);
+    int height(RBNode* node) const;
 
     // Métodos de rotação
     RBNode *rotateLeft(RBNode *node);
@@ -29,6 +31,7 @@ private:
     RBNode *remove(RBNode *node, int key);
     void printTree(RBNode *node, const std::string &prefix, bool isLeft) const;
     void destroyTree(RBNode *node);
+    int height() const;
 
 public:
     RBTree();

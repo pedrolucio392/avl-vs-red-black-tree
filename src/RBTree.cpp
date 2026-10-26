@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 #define ANSI_RED "\033[31;1m"
 #define ANSI_RESET "\033[0m"
@@ -78,6 +79,53 @@ RBNode *RBTree::insert(RBNode *node, int key)
     return node; // Retorna o nó atual se não tiver alteração
 };
 
+// lógica principal recursiva para remoção na rb
+RBNode *RBTree::remove(RBNode *node, int key)
+{
+    if (key < node->key)
+    {
+        if (!isRed(node->left) && !isRed(node->left->left))
+        {
+            node = moveRedLeft(node);
+        }
+        node->left = remove(node->left, key);
+    }
+    else
+    {
+        // Se houver um link vermelho à esquerda, rotaciona para a direita
+        if (isRed(node->left))
+        {
+            node = rotateRight(node);
+        }
+
+        if (key == node->key && (node->right == nullptr))
+        {
+            delete node;
+            return nullptr;
+        }
+
+        if (!isRed(node->right) && !isRed(node->right->left))
+        {
+            node = moveRedRight(node);
+        }
+
+        // Nó interno encontrado com subárvore direita
+        if (key == node->key)
+        {
+            RBNode *minNode = getMinimum(node->right);
+            node->key = minNode->key;
+            node->right = removeMin(node->right);
+        }
+        else
+        {
+            node->right = remove(node->right, key);
+        }
+    }
+
+    // Rebalanceia na subida da recursão
+    return balance(node);
+}
+
 // METODOS AUXILIARES PRIVADOS
 
 // realiza a rotação à esquerda em um nó específico
@@ -114,6 +162,7 @@ bool RBTree::isRed(RBNode *node) const
     return node != nullptr && node->color == RED;
 };
 
+// realiza a troca das cores dos nós
 void RBTree::flipColors(RBNode *node)
 {
     node->color = (node->color == RED) ? BLACK : RED;
@@ -121,6 +170,86 @@ void RBTree::flipColors(RBNode *node)
     node->right->color = (node->right->color == RED) ? BLACK : RED;
 };
 
+// metodo para balancear a RB tree nos diferentes casos (ambos filhos vermelhos, etc)
+RBNode *RBTree::balance(RBNode *node)
+{
+    if (isRed(node->right) && !isRed(node->left))
+    {
+        node = rotateLeft(node);
+    }
+    if (isRed(node->left) && isRed(node->left->left))
+    {
+        node = rotateRight(node);
+    }
+    if (isRed(node->left) && isRed(node->right))
+    {
+        flipColors(node);
+    }
+    return node;
+};
+
+// auxiliar de remoção
+RBNode *RBTree::moveRedLeft(RBNode *node)
+{
+    flipColors(node);
+    if (isRed(node->right->left))
+    {
+        node->right = rotateRight(node->right);
+        node = rotateLeft(node);
+        flipColors(node);
+    }
+    return node;
+};
+
+// auxiliar de remoção
+RBNode *RBTree::moveRedRight(RBNode *node)
+{
+    flipColors(node);
+    // Se o irmão esquerdo tem um filho esquerdo vermelho, empresta dele
+    if (isRed(node->left->left))
+    {
+        node = rotateRight(node);
+        flipColors(node);
+    }
+    return node;
+};
+
+//
+RBNode *RBTree::getMinimum(RBNode *node) const
+{
+    while (node->left != nullptr)
+    {
+        node = node->left;
+    }
+    return node;
+};
+
+int RBTree::height(RBNode *node) const
+{
+    if (node == nullptr)
+        return 0;
+    return 1 + std::max(height(node->left), height(node->right));
+}
+
+//
+RBNode *RBTree::removeMin(RBNode *node)
+{
+    if (node->left == nullptr)
+    {
+        delete node;
+        return nullptr;
+    }
+
+    if (!isRed(node->left) && !isRed(node->left->left))
+    {
+        node = moveRedLeft(node);
+    }
+
+    node->left = removeMin(node->left);
+    return balance(node);
+};
+
+// destroi a árvore utilizando pós-ordem
 void RBTree::destroyTree(RBNode *node)
 {
     if (node == nullptr)
@@ -134,6 +263,7 @@ void RBTree::destroyTree(RBNode *node)
     delete node;
 };
 
+// mostra a árvore final
 void RBTree::printTree(RBNode *node, const std::string &prefix, bool isLeft) const
 {
     if (node == nullptr)
@@ -193,4 +323,30 @@ void RBTree::printTree() const
         return;
     }
     printTree(root, "", false);
+}
+
+// Metodo de remoção público
+void RBTree::remove(int key)
+{
+    if (root == nullptr || !search(key))
+    {
+        return;
+    }
+
+    if (!isRed(root->left) && !isRed(root->right))
+    {
+        root->color = RED;
+    }
+
+    root = remove(root, key);
+
+    if (root != nullptr)
+    {
+        root->color = BLACK;
+    }
+}
+
+int RBTree::height() const
+{
+    return height(root);
 }
