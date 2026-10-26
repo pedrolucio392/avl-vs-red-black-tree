@@ -10,6 +10,7 @@ public:
     AVLNode *right;
 
     AVLNode(int k) : key(k), height(1), left(nullptr), right(nullptr) {}
+    ~AVLNode() = default;
 };
 
 #endif

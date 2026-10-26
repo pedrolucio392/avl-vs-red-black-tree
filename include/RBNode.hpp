@@ -19,6 +19,7 @@ public:
     RBNode *parent;
 
     RBNode(int k) : key(k), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+    ~RBNode() {}
 };
 
 #endif
