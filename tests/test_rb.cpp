@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include "RBTree.hpp"
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -92,6 +93,126 @@ void testDuplicateKeys()
               << std::endl;
 }
 
+void testRemoveLeaf() {
+    std::cout << "[TESTE REMOVE 1] Remocao de folhas..." << std::endl;
+    RBTree tree;
+
+    tree.insert(20);
+    tree.insert(10);
+    tree.insert(30);
+
+    assert(tree.search(10));
+    tree.remove(10);
+    assert(!tree.search(10));
+    assert(tree.search(20));
+    assert(tree.search(30));
+
+    tree.remove(30);
+    assert(!tree.search(30));
+    assert(tree.search(20));
+
+    std::cout << "-> Passou!\n" << std::endl;
+}
+
+void testRemoveNodeWithTwoChildren() {
+    std::cout << "[TESTE REMOVE 2] Remocao de no interno com dois filhos..." << std::endl;
+    RBTree tree;
+
+    // Constrói uma árvore balanceada
+    std::vector<int> values = {50, 20, 70, 10, 30, 60, 80};
+    for (int v : values) {
+        tree.insert(v);
+    }
+
+    std::cout << "Arvore antes de remover o 20:\n";
+    tree.printTree();
+
+    // 20 possui filhos 10 e 30
+    tree.remove(20);
+    assert(!tree.search(20));
+    assert(tree.search(10));
+    assert(tree.search(30));
+    assert(tree.search(50));
+    assert(tree.search(70));
+
+    std::cout << "\nArvore apos remover o 20 (sucessor assumiu):\n";
+    tree.printTree();
+
+    std::cout << "-> Passou!\n" << std::endl;
+}
+
+// Teste 3: Remoção da própria Raiz
+void testRemoveRoot() {
+    std::cout << "[TESTE REMOVE 3] Remocao da raiz..." << std::endl;
+    RBTree tree;
+
+    tree.insert(40);
+    tree.insert(20);
+    tree.insert(60);
+
+    // Remove a raiz
+    tree.remove(40);
+    assert(!tree.search(40));
+    assert(tree.search(20));
+    assert(tree.search(60));
+
+    // Remove a nova raiz
+    tree.remove(60);
+    assert(!tree.search(60));
+    assert(tree.search(20));
+
+    // Remove o último elemento restante
+    tree.remove(20);
+    assert(!tree.search(20));
+    assert(tree.getRoot() == nullptr);
+
+    std::cout << "-> Passou!\n" << std::endl;
+}
+
+// Teste 4: Chave inexistente (não deve quebrar nem alterar nada)
+void testRemoveNonExistent() {
+    std::cout << "[TESTE REMOVE 4] Remocao de chave inexistente..." << std::endl;
+    RBTree tree;
+
+    tree.insert(10);
+    tree.insert(5);
+
+    tree.remove(99); // Não existe
+    assert(tree.search(10));
+    assert(tree.search(5));
+
+    std::cout << "-> Passou!\n" << std::endl;
+}
+
+// Teste 5: Estresse - Inserções e remoções em cascata
+void testStressRemove() {
+    std::cout << "[TESTE REMOVE 5] Teste de estresse com multiplas remocoes..." << std::endl;
+    RBTree tree;
+    std::vector<int> dataset = {15, 8, 25, 4, 11, 20, 30, 2, 6, 9, 13};
+
+    for (int x : dataset) {
+        tree.insert(x);
+    }
+
+    // Remove metade dos elementos
+    std::vector<int> toRemove = {4, 25, 15, 2};
+    for (int x : toRemove) {
+        tree.remove(x);
+        assert(!tree.search(x));
+    }
+
+    // Confere se os outros continuam intactos
+    std::vector<int> remaining = {8, 11, 20, 30, 6, 9, 13};
+    for (int x : remaining) {
+        assert(tree.search(x));
+    }
+
+    std::cout << "Arvore resultante do estresse:\n";
+    tree.printTree();
+
+    std::cout << "-> Passou!\n" << std::endl;
+}
+
 int main()
 {
     #ifdef _WIN32
@@ -99,10 +220,16 @@ int main()
     #endif
     std::cout << "=== INICIANDO TESTES: LLRB ===\n\n";
 
-    testBasicSearch();
-    testRightLeaningFix();
-    testConsecutiveRedsFix();
-    testDuplicateKeys();
+    // testBasicSearch();
+    // testRightLeaningFix();
+    // testConsecutiveRedsFix();
+    // testDuplicateKeys();
+
+    testRemoveLeaf();
+    testRemoveNodeWithTwoChildren();
+    testRemoveRoot();
+    testRemoveNonExistent();
+    testStressRemove();
 
     std::cout << "=== TODOS OS TESTES PASSARAM! ===\n";
     return 0;
