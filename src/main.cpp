@@ -89,32 +89,41 @@ void runFullBenchmark(std::vector<BenchmarkResult> &results, const std::string &
 
 void runBenchmark()
 {
-    const int N = 10000;
     std::vector<BenchmarkResult> allResults;
-    std::vector<int> queries(N), asc(N), desc(N), randData(N);
+    // Tamanhos de carga para o Teste de Estresse
+    std::vector<int> N_values = {10000, 50000, 100000};
 
-    std::iota(queries.begin(), queries.end(), 1);
-    std::mt19937 gSearch(999);
-    std::shuffle(queries.begin(), queries.end(), gSearch);
+    std::cout << "\nIniciando Bateria de Testes de Estresse. Isso pode levar alguns segundos...\n";
 
-    std::iota(randData.begin(), randData.end(), 1);
-    std::mt19937 g(42);
-    std::shuffle(randData.begin(), randData.end(), g);
+    for (int N : N_values)
+    {
+        std::vector<int> queries(N), asc(N), desc(N), randData(N);
 
-    std::iota(asc.begin(), asc.end(), 1);
-    desc = asc;
-    std::reverse(desc.begin(), desc.end());
+        std::iota(queries.begin(), queries.end(), 1);
+        std::mt19937 gSearch(999);
+        std::shuffle(queries.begin(), queries.end(), gSearch);
 
-    std::cout << "\nExecutando Benchmark (" << N << " itens). Aguarde...\n";
-    runFullBenchmark<AVLTree>(allResults, "AVL", "Aleatorio", randData, queries);
-    runFullBenchmark<RBTree>(allResults, "LLRB", "Aleatorio", randData, queries);
-    runFullBenchmark<AVLTree>(allResults, "AVL", "Crescente", asc, queries);
-    runFullBenchmark<RBTree>(allResults, "LLRB", "Crescente", asc, queries);
-    runFullBenchmark<AVLTree>(allResults, "AVL", "Decrescente", desc, queries);
-    runFullBenchmark<RBTree>(allResults, "LLRB", "Decrescente", desc, queries);
+        std::iota(randData.begin(), randData.end(), 1);
+        std::mt19937 g(42);
+        std::shuffle(randData.begin(), randData.end(), g);
+
+        std::iota(asc.begin(), asc.end(), 1);
+        desc = asc;
+        std::reverse(desc.begin(), desc.end());
+
+        std::cout << "-> Processando Lote de " << N << " itens...\n";
+
+        runFullBenchmark<AVLTree>(allResults, "AVL", "Aleatorio", randData, queries);
+        runFullBenchmark<RBTree>(allResults, "LLRB", "Aleatorio", randData, queries);
+        runFullBenchmark<AVLTree>(allResults, "AVL", "Crescente", asc, queries);
+        runFullBenchmark<RBTree>(allResults, "LLRB", "Crescente", asc, queries);
+        runFullBenchmark<AVLTree>(allResults, "AVL", "Decrescente", desc, queries);
+        runFullBenchmark<RBTree>(allResults, "LLRB", "Decrescente", desc, queries);
+    }
 
     printResultsTable(allResults);
     exportToCSV(allResults, "output/benchmark_results.csv");
+    std::cout << "Bateria de testes concluida com sucesso!\n";
 }
 
 // --- MENU INTERATIVO ---
