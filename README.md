@@ -1,5 +1,7 @@
 # Amazon Engineering Challenge: Árvores Balanceadas (AVL e Rubro-Negra)
 
+**Autor:** Pedro Lúcio de Azevedo.
+
 ## O Projeto
 
 Durante o período da Black Friday, o sistema de logística da Amazon recebe um volume massivo de identificadores (IDs) de encomendas. Se esses IDs forem inseridos em uma Árvore Binária de Busca (BST) comum, a ordem de chegada (ex: sequencial) pode causar a degeneração da estrutura para uma lista encadeada (O(n)). Dessa forma, este projeto implementa e avalia duas estruturas de dados auto-balanceáveis: **Árvore AVL** e **Árvore Rubro-Negra (LLRB)** com as operações de busca, inserção e remoção no tempo O(log n).
@@ -11,7 +13,7 @@ Durante o período da Black Friday, o sistema de logística da Amazon recebe um 
 - **Busca:** Verificação de existência de pacotes (IDs) em tempo logarítmico.
 - **Percurso Em-Ordem:** Exibição dos IDs ordenados de forma crescente.
 - **Visualização Estrutural (Print Tree):** Impressão da árvore deitada no terminal, exibindo o Fator de Balanceamento na AVL e as cores (Rubro/Negro) na LLRB com formatação ANSI.
-- **Benchmark Automatizado:** Avaliação de 10.000 elementos nos cenários Crescente, Decrescente e Aleatório, exportando resultados (altura, rotações e tempo em ms) para um arquivo CSV.
+- **Benchmark Automatizado:** Avaliação de 10k, 50k e 100k elementos nos cenários Crescente, Decrescente e Aleatório, exportando resultados (altura, rotações e tempo em ms) para um arquivo CSV.
 
 ## Pré-requisitos
 
