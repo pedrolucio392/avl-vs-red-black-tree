@@ -23,6 +23,20 @@ Para compilar e executar o código, você precisará de:
 - Ferramenta **Make** (no Windows, recomenda-se `mingw32-make`).
 - Terminal com suporte nativo a cores ANSI (recomendado: Windows Terminal, VS Code Terminal ou PowerShell).
 
+## Execução Rápida (Versão Compilada)
+
+Para fins de avaliação direta sem necessidade de compilação prévia:
+
+- **Localização do executável:** [`output/main`](./output/main)
+
+### Como rodar:
+```bash
+# Permissão de execução (caso necessário em Linux/macOS)
+chmod +x output/main
+
+# Executar o programa
+./output/main
+
 ## Como Compilar e Executar
 
 1. **Clone o repositório:**

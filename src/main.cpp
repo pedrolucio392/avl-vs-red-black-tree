@@ -7,7 +7,10 @@
 #include <iomanip>
 #include <string>
 #include <fstream>
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 #include "AVLTree.hpp"
 #include "RBTree.hpp"
@@ -199,7 +202,9 @@ void menuInterativo(const std::string &nomeArvore)
 
 int main()
 {
-    SetConsoleOutputCP(CP_UTF8);
+    #ifdef _WIN32
+        SetConsoleOutputCP(CP_UTF8);
+    #endif
     int opcaoPrincipal = -1;
 
     while (opcaoPrincipal != 0)

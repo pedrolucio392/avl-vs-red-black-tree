@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -O2 -Wall -Wextra -std=c++17 -Iinclude
 
-TARGET = output/main.exe
+TARGET = output/main
 
 $(shell if not exist output mkdir output 2>nul)
 
